@@ -8,7 +8,7 @@
     "lib": "lib"
   },
   "scripts": {
-    "test": "jasmine-ts \"spec/**/*.spec.ts\"",
+    "test": "ts-node node_modules/jasmine/bin/jasmine",
     "prepublishOnly": "npm run build",
     "build": "rm -rf lib && tsc -p .",
     "lint": "eslint --fix ."

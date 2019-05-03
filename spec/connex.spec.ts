@@ -1,10 +1,7 @@
-import 'jasmine';
-import { module } from './index';
-import { EnergyTokenContract, EnergyContractImport } from './EnergyContract';
 import { Read, Write, GetEvents, SolidoModule, SolidoContract } from '@decent-bet/solido';
 import { IMethodOrEventCall, EventFilterOptions } from '@decent-bet/solido';
 import { ConnexSolidoTopic, ConnexPlugin } from '../src';
-
+import { EnergyTokenContract, EnergyContractImport } from './EnergyContract';
 
 describe('Connex Provider', () => {
     describe('#ConnexPlugin', () => {
