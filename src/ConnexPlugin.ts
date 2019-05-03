@@ -33,9 +33,6 @@ export class ConnexPlugin extends SolidoProvider
     }
 
     public prepareSigning(methodCall: any, options: IMethodOrEventCall, args: any[]):  Promise<SolidoSigner> {
-        if (!options.gas) {
-            throw new Error('Missing IMethodOrEventCall.gas');
-        }
         const connex = this.connex;
         const signingService = connex.vendor.sign('tx');
         signingService.signer(this.defaultAccount);
