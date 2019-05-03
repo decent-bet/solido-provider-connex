@@ -59,10 +59,6 @@ export class ConnexPlugin extends SolidoProvider implements SolidoContract {
       const payload = methodCall.asClause(...args);
 
       return explainer.execute([
-        {
-          to: this.address,
-          data: '0x'
-        },
         payload
       ]);
     };
