@@ -34,13 +34,13 @@
     "nodemon": "^1.18.10",
     "ts-node": "^8.0.3",
     "typescript": "^3.3.4000",
-    "@decent-bet/solido": ">=0.4.1"
+    "@decent-bet/solido": "1.0.0-beta.1"
   },
   "dependencies": {
     "rxjs": "^6.5.1",
     "thor-devkit": "^0.10.1"
   },
   "peerDependencies": {
-    "@decent-bet/solido": ">=0.4.1"
+    "@decent-bet/solido": "1.0.0-beta.1"
   }
 }
