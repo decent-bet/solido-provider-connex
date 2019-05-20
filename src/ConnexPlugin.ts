@@ -5,7 +5,8 @@ import { abi } from 'thor-devkit';
 import {
   IMethodOrEventCall,
   EventFilter,
-  SolidoProviderType
+  SolidoProviderType,
+  ProviderInstance
 } from '@decent-bet/solido';
 import { ConnexSigner } from './ConnexSigner';
 import { ConnexSettings } from './ConnexSettings';
@@ -25,14 +26,6 @@ export class ConnexPlugin extends SolidoProvider implements SolidoContract {
 
   public getProviderType(): SolidoProviderType {
     return SolidoProviderType.Connex;
-  }
-
-  public onReady<T>(settings: T & ConnexSettings): void {
-    const { connex, chainTag, defaultAccount } = settings;
-    this.connex = connex;
-    this.chainTag = chainTag;
-    this.defaultAccount = defaultAccount;
-    this.address = this.contractImport.address[this.chainTag];
   }
 
   public prepareSigning(
@@ -58,10 +51,34 @@ export class ConnexPlugin extends SolidoProvider implements SolidoContract {
 
       const payload = methodCall.asClause(...args);
 
-      return explainer.execute([
-        payload
-      ]);
+      return explainer.execute([payload]);
     };
+  }
+
+  public onReady<T>(settings: T & ConnexSettings): void {
+    const { connex, chainTag, defaultAccount } = settings;
+    this.connex = connex;
+    this.chainTag = chainTag;
+    this.defaultAccount = defaultAccount;
+    this.connect();
+  }
+
+  public connect() {
+    if (this.connex && this.chainTag && this.defaultAccount) {
+      this.address = this.contractImport.address[this.chainTag];
+    } else {
+      throw new Error('Missing onReady settings');
+    }
+  }
+  
+  public setInstanceOptions(settings: ProviderInstance) {
+    this.connex = settings.provider;
+    if (settings.options.chainTag) {
+      this.chainTag = settings.options.chainTag;
+    }
+    if (settings.options.defaultAccount) {
+      this.defaultAccount = settings.options.defaultAccount;
+    }
   }
 
   public getAbiMethod(name: string, address?: string): object {
