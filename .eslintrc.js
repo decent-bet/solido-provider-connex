@@ -7,7 +7,7 @@ module.exports = {
   },
   parser: "@typescript-eslint/parser",
   parserOptions: {
-    project: "./tsconfig.json"
+    project: "tsconfig.json"
   },
   rules: {
     "no-underscore-dangle": "off",
@@ -23,8 +23,9 @@ module.exports = {
   extends: ["plugin:@typescript-eslint/recommended"],
   overrides: [
     {
-      files: ["src/*.ts", "tests/*.ts"]
+      files: ["src/**/*.ts", "spec/*.ts"]
     }
   ]
 };
+
 
