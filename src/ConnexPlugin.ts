@@ -47,8 +47,8 @@ export class ConnexPlugin extends SolidoProvider implements SolidoContract {
 
   public createGasExplainer(methodCall: any) {
     return (...args: any[]) => {
-      return (config?: IMethodConfig) => {
-        const explainer = connex.thor.explain();
+      return (config: IMethodConfig = {}) => {
+        const explainer = this.connex.thor.explain();
         explainer.gas(config.gas || 300_000).caller(config.from || this.defaultAccount);
 
         const payload = methodCall.asClause(...args);
