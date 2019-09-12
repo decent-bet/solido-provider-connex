@@ -11,7 +11,7 @@ import { switchMap } from 'rxjs/operators';
  * @param eventLogFn
  */
 export const waitForLog = (
-    writeFn: Promise<Connex.Vendor.SigningService.TxResponse>,
+    writeFn: Promise<Connex.Vendor.TxResponse>,
     eventLogFn: Promise<any>
 ) =>
     Observable.create(async (observer: Observer<boolean>) => {
