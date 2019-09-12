@@ -6,7 +6,8 @@ import {
   IMethodOrEventCall,
   EventFilter,
   SolidoProviderType,
-  ProviderInstance
+  ProviderInstance,
+  IMethodConfig
 } from '@decent-bet/solido';
 import { ConnexSigner } from './ConnexSigner';
 import { ConnexSettings } from './ConnexSettings';
@@ -35,7 +36,7 @@ export class ConnexPlugin extends SolidoProvider implements SolidoContract {
   ): Promise<SolidoSigner> {
     const connex = this.connex;
     const signingService = connex.vendor.sign('tx');
-    signingService.signer(this.defaultAccount);
+    signingService.signer(options.from || this.defaultAccount);
     signingService.gas(options.gas || 300_000); // Set maximum gas
 
     const payload = methodCall.asClause(...args);
@@ -45,13 +46,15 @@ export class ConnexPlugin extends SolidoProvider implements SolidoContract {
   }
 
   public createGasExplainer(methodCall: any) {
-    return (gas: any, ...args: any[]) => {
-      const explainer = connex.thor.explain();
-      explainer.gas(gas || 300_000).caller(this.defaultAccount);
+    return (...args: any[]) => {
+      return (config: IMethodConfig = {}) => {
+        const explainer = this.connex.thor.explain();
+        explainer.gas(config.gas || 300_000).caller(config.from || this.defaultAccount);
 
-      const payload = methodCall.asClause(...args);
+        const payload = methodCall.asClause(...args);
 
-      return explainer.execute([payload]);
+        return explainer.execute([payload]);
+      };
     };
   }
 
@@ -70,7 +73,7 @@ export class ConnexPlugin extends SolidoProvider implements SolidoContract {
       throw new Error('Missing onReady settings');
     }
   }
-  
+
   public setInstanceOptions(settings: ProviderInstance) {
     this.connex = settings.provider;
     if (settings.options.chainTag) {
