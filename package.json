@@ -1,6 +1,6 @@
 {
   "name": "@decent-bet/solido-provider-connex",
-  "version": "1.2.2",
+  "version": "1.2.3",
   "description": "Solido Connex provider",
   "main": "lib/index.js",
   "typings": "lib/index.d.ts",
@@ -24,23 +24,23 @@
   },
   "homepage": "https://github.com/decent-bet/solido-provider-connex#readme",
   "devDependencies": {
-    "@types/jasmine": "^3.3.13",
-    "@types/node": "^12.6.2",
-    "@typescript-eslint/eslint-plugin": "^1.11.0",
-    "@vechain/connex": "^1.3.1",
-    "eslint": "^5.15.3",
+    "@types/jasmine": "^3.4.0",
+    "@types/node": "^12.7.5",
+    "@typescript-eslint/eslint-plugin": "^2.3.0",
+    "@vechain/connex": "^1.4.0",
+    "eslint": "^6.4.0",
     "jasmine": "^3.4.0",
     "jasmine-ts": "^0.3.0",
-    "nodemon": "^1.19.1",
-    "ts-node": "^8.3.0",
+    "nodemon": "^1.19.2",
+    "ts-node": "^8.4.1",
     "typescript": "^3.6.3",
-    "@decent-bet/solido": "^1.1.3"
+    "@decent-bet/solido": "^1.1.4"
   },
   "dependencies": {
     "rxjs": "^6.5.3",
-    "thor-devkit": "1.1.0"
+    "thor-devkit": "^1.1.0"
   },
   "peerDependencies": {
-    "@decent-bet/solido": "^1.1.1"
+    "@decent-bet/solido": "^1.1.4"
   }
 }

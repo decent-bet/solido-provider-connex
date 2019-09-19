@@ -25,6 +25,13 @@ export class ConnexPlugin extends SolidoProvider implements SolidoContract {
   public defaultAccount: string;
   public address: string;
 
+  public describe(): string {
+    return `
+    contract address: ${this.address}\r\n
+    chain tag: ${this.chainTag}\r\n
+    owner: ${this.defaultAccount}\r\n    
+    `;
+  }
   public getProviderType(): SolidoProviderType {
     return SolidoProviderType.Connex;
   }
