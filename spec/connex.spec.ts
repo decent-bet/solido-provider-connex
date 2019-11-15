@@ -4,6 +4,7 @@ import { EnergyTokenContract, EnergyContractImport } from './EnergyContract';
 import { Read, Write, GetEvents, SolidoModule, SolidoContract, IMethodConfig } from '@decent-bet/solido';
 import { IMethodOrEventCall, EventFilterOptions } from '@decent-bet/solido';
 import { ConnexSolidoTopic, ConnexPlugin } from '../src';
+import { from } from 'rxjs';
 
 
 describe('Connex Provider', () => {
@@ -42,12 +43,29 @@ describe('Connex Provider', () => {
                     }
                 ],
             );
+            // Configure reactive solido store
+            const store = {
+                state: {
+                    'balance': 0,
+                },
+                mapActions: {
+                    transfer: {
+                        getter: 'balance',
+                        onFi1lter: 'LogNewTransfer',
+                        mutation: (e, contract: ConnexPlugin) => {
+                            return from(contract.methods.getBalanceOf(contract.defaultAccount));
+                        },
+                    }
+                }
+            };
+
             const contracts = module.bindContracts({
                 'connex': {
                     provider: connex,
                     options: {
                         defaultAccount,
                         chainTag,
+                        store
                         // ...connex options
                     }
                 },

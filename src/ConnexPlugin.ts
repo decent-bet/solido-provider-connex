@@ -14,6 +14,23 @@ import { ConnexSettings } from './ConnexSettings';
 import { SolidoContract, SolidoSigner } from '@decent-bet/solido';
 import { SolidoProvider } from '@decent-bet/solido';
 import { SolidoTopic } from '@decent-bet/solido';
+import { Observable, Subject, from } from 'rxjs';
+import { switchMap, tap, pluck } from 'rxjs/operators';
+import { blockConfirmationUntil } from './operators';
+
+export interface MapAction {
+  [key: string]: {
+    getter: string,
+    onFilter: string,
+    mutation: (data: { e: Array<any>, contract: ConnexPlugin }) => Observable<object>
+  };
+}
+
+export interface ReactiveContractStore {
+  mapActions?: MapAction,
+  state: object;
+}
+
 
 /**
  * ConnexPlugin provider for Solido
@@ -24,6 +41,11 @@ export class ConnexPlugin extends SolidoProvider implements SolidoContract {
   public chainTag: string;
   public defaultAccount: string;
   public address: string;
+  private store: ReactiveContractStore = {
+    mapActions: {},
+    state: {}
+  };
+  private _subscriber: Subject<object>;
 
   public describe(): string {
     return `
@@ -36,7 +58,7 @@ export class ConnexPlugin extends SolidoProvider implements SolidoContract {
     return SolidoProviderType.Connex;
   }
 
-  public prepareSigning(
+  public async prepareSigning(
     methodCall: any,
     options: IMethodOrEventCall,
     args: any[]
@@ -48,8 +70,39 @@ export class ConnexPlugin extends SolidoProvider implements SolidoContract {
 
     const payload = methodCall.asClause(...args);
 
+    let onMapAction = (res) => { };
+    const mapActionName = (<any>options).dispatch;
+    const mapAction = this.store.mapActions[mapActionName];
+
+    if (mapAction) {
+      onMapAction = async ({ txid }) => {
+        await blockConfirmationUntil(txid);
+
+        try {
+          const mutateRes = await mapAction.mutation({
+            contract: this,
+            e: [...args],
+          }).toPromise();
+          this._subscriber.next({
+            ...this.store.state,
+            [mapAction.getter]: mutateRes,
+          });
+        } catch (e) {
+          console.log('mutation error');
+        }
+      }
+    }
+
     const signer = new ConnexSigner(signingService, payload);
-    return Promise.resolve(signer);
+    const res = await signer.requestSigning();
+    await onMapAction(res);
+    return res;
+  }
+
+  subscribe(key: string, fn: any) {
+    if (Object.keys(this.store.state).find(i => i === key)) {
+      return this._subscriber.pipe(pluck(key)).subscribe(fn);
+    }
   }
 
   public createGasExplainer(methodCall: any) {
@@ -66,14 +119,21 @@ export class ConnexPlugin extends SolidoProvider implements SolidoContract {
   }
 
   public onReady<T>(settings: T & ConnexSettings): void {
-    const { connex, chainTag, defaultAccount } = settings;
+    const { store, connex, chainTag, defaultAccount } = settings;
     this.connex = connex;
     this.chainTag = chainTag;
     this.defaultAccount = defaultAccount;
+    this.store = store;
     this.connect();
   }
 
   public connect() {
+    if (this.store) {
+      this._subscriber = new Subject();
+      this._subscriber.subscribe((state) => {
+        this.store.state = state;
+      });
+    }
     if (this.connex && this.chainTag && this.defaultAccount) {
       this.address = this.contractImport.address[this.chainTag];
     } else {
@@ -88,6 +148,10 @@ export class ConnexPlugin extends SolidoProvider implements SolidoContract {
     }
     if (settings.options.defaultAccount) {
       this.defaultAccount = settings.options.defaultAccount;
+    }
+    if (settings.options.store) {
+      this._subscriber = new Subject();
+      this.store = settings.options.store;
     }
   }
 
