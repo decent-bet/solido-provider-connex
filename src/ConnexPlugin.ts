@@ -1,7 +1,7 @@
 // eslint-disable-next-line spaced-comment
 /// <reference types="@vechain/connex" />
 
-import { abi } from 'thor-devkit';
+import { abi, Transaction } from 'thor-devkit';
 import {
   IMethodOrEventCall,
   EventFilter,
@@ -36,15 +36,16 @@ export class ConnexPlugin extends SolidoProvider implements SolidoContract {
     return SolidoProviderType.Connex;
   }
 
-  public prepareSigning(
+  public async prepareSigning(
     methodCall: any,
     options: IMethodOrEventCall,
     args: any[]
   ): Promise<SolidoSigner> {
+    const estimation = await this.createGasExplainer(methodCall)(args)(options);
     const connex = this.connex;
     const signingService = connex.vendor.sign('tx');
     signingService.signer(options.from || this.defaultAccount);
-    signingService.gas(options.gas || 300_000); // Set maximum gas
+    signingService.gas(estimation.estimatedGasWithCoef); // Set maximum gas
 
     const payload = methodCall.asClause(...args);
 
@@ -54,16 +55,32 @@ export class ConnexPlugin extends SolidoProvider implements SolidoContract {
 
   public createGasExplainer(methodCall: any) {
     return (...args: any[]) => {
-      return (config: IMethodConfig = {}) => {
+      return async (config: IMethodConfig = {}) => {
         const explainer = this.connex.thor.explain();
-        explainer.gas(config.gas || 300_000).caller(config.from || this.defaultAccount);
+        let baseGas = 300_000;
+        if (typeof(config.gas) === 'number') {
+          baseGas = config.gas;
+        }
+        explainer.gas(baseGas).caller(config.from || this.defaultAccount);
 
         const payload = methodCall.asClause(...args);
 
-        return explainer.execute([payload]);
+        const [resp] = await explainer.execute(payload);
+
+        const intrinsicGas = Transaction.intrinsicGas(payload) 
+      
+        let estimatedGasWithCoef = null;
+        if (!resp.reverted) {
+          estimatedGasWithCoef = (config.gasPriceCoef || 1.2) * (resp.gasUsed + intrinsicGas);
+        }
+        return { 
+          estimation: resp,
+          estimatedGasWithCoef, 
+        };
       };
     };
   }
+
 
   public onReady<T>(settings: T & ConnexSettings): void {
     const { connex, chainTag, defaultAccount } = settings;

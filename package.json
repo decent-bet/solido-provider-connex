@@ -1,6 +1,6 @@
 {
   "name": "@decent-bet/solido-provider-connex",
-  "version": "1.2.3",
+  "version": "1.2.4",
   "description": "Solido Connex provider",
   "main": "lib/index.js",
   "typings": "lib/index.d.ts",
@@ -41,6 +41,6 @@
     "thor-devkit": "^1.1.0"
   },
   "peerDependencies": {
-    "@decent-bet/solido": "^1.1.4"
+    "@decent-bet/solido": "^1.1.6"
   }
 }
