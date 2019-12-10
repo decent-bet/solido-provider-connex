@@ -54,7 +54,9 @@ export class ConnexPlugin extends SolidoProvider implements SolidoContract {
   }
 
   public createGasExplainer(methodCall: any) {
-    return (...args: any[]) => {
+    return (args: any[]) => {
+      const payload = methodCall.asClause(...args);
+
       return async (config: IMethodConfig = {}) => {
         const explainer = this.connex.thor.explain();
         let baseGas = 300_000;
@@ -63,11 +65,10 @@ export class ConnexPlugin extends SolidoProvider implements SolidoContract {
         }
         explainer.gas(baseGas).caller(config.from || this.defaultAccount);
 
-        const payload = methodCall.asClause(...args);
 
-        const [resp] = await explainer.execute(payload);
+        const [resp] = await explainer.execute([payload]);
 
-        const intrinsicGas = Transaction.intrinsicGas(payload) 
+        const intrinsicGas = Transaction.intrinsicGas([payload]) 
       
         let estimatedGasWithCoef = null;
         if (!resp.reverted) {
@@ -75,7 +76,7 @@ export class ConnexPlugin extends SolidoProvider implements SolidoContract {
         }
         return { 
           estimation: resp,
-          estimatedGasWithCoef, 
+          estimatedGasWithCoef: Math.round(estimatedGasWithCoef), 
         };
       };
     };
