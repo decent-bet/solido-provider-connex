@@ -15,6 +15,7 @@ import { SolidoContract, SolidoSigner } from '@decent-bet/solido';
 import { SolidoProvider } from '@decent-bet/solido';
 import { SolidoTopic } from '@decent-bet/solido';
 
+export type AskSigning = (payload: any) => Promise<boolean>;
 /**
  * ConnexPlugin provider for Solido
  */
@@ -24,6 +25,7 @@ export class ConnexPlugin extends SolidoProvider implements SolidoContract {
   public chainTag: string;
   public defaultAccount: string;
   public address: string;
+  public askSigning: (detail: any) => Promise<boolean>;
 
   public describe(): string {
     return `
@@ -38,7 +40,7 @@ export class ConnexPlugin extends SolidoProvider implements SolidoContract {
 
   public async prepareSigning(
     methodCall: any,
-    options: IMethodOrEventCall,
+    options: IMethodOrEventCall & { askSigning: AskSigning },
     args: any[]
   ): Promise<SolidoSigner> {
     const estimation = await this.createGasExplainer(methodCall)(args)(options);
@@ -49,7 +51,7 @@ export class ConnexPlugin extends SolidoProvider implements SolidoContract {
 
     const payload = methodCall.asClause(...args);
 
-    const signer = new ConnexSigner(signingService, payload);
+    const signer = new ConnexSigner(signingService, payload, options.askSigning || null);
     return Promise.resolve(signer);
   }
 
